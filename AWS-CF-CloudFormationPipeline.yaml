@@ -223,6 +223,7 @@ Resources:
             Repo: !Ref GitRepo
             Branch: !Ref GitBranch
             OAuthToken: !Ref GitToken
+            PollForSourceChanges: true
           RunOrder: 1
       - !If
         - Build
