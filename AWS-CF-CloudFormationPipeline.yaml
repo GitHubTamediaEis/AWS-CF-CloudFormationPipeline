@@ -12,7 +12,7 @@ Parameters:
     Type: String
   TemplateFile:
     Type: String
-    Default: source::packaged.yaml
+    Default: build::packaged.yaml
     Description: 'Name of the CloudFormation template file, prefixed by the artifact name (either source:: or build::)'
   Build:
     Type: String
