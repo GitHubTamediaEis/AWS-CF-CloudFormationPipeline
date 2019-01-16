@@ -1,0 +1,295 @@
+Parameters:
+  GitOwner:
+    Type: String
+  GitRepo:
+    Type: String
+  GitBranch:
+    Type: String
+  GitToken:
+    NoEcho: true
+    Type: String
+  StackName:
+    Type: String
+  TemplateFile:
+    Type: String
+    Default: source::packaged.yaml
+    Description: 'Name of the CloudFormation template file, prefixed by the artifact name (either source:: or build::)'
+  Build:
+    Type: String
+    Default: true
+    Description: Does the cloudformation need to be built?
+    AllowedValues:
+    - true
+    - false  
+  ConfigurationFile:
+    Default: ''
+    Type: String
+    Description: 'Name of the configuration file, prefixed by the artifact name (either source:: or build::)'
+  Capabilities:
+    Type: String
+    Default: ''
+    AllowedValues:
+    - ''
+    - CAPABILITY_NAMED_IAM
+    - CAPABILITY_IAM
+  ParameterOverrides:
+    Type: String
+    Default: ''
+    Description: Used to override Cloudformation input parameters
+  Validation:
+    Type: String
+    Default: true
+    Description: Ask for human validation before deployment
+    AllowedValues:
+    - true
+    - false    
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+    - Label: 
+        default: "GitHub"
+      Parameters: 
+      - GitOwner
+      - GitRepo
+      - GitBranch
+      - GitToken
+    - Label: 
+        default: "CloudFormation"
+      Parameters: 
+      - StackName
+      - TemplateFile
+      - ConfigurationFile
+      - Build
+      - Capabilities
+      - ParameterOverrides
+    ParameterLabels: 
+      GitOwner: 
+        default: "Owner"
+      GitRepo: 
+        default: "Repository"
+      GitBranch: 
+        default: "Branch"
+      GitToken: 
+        default: "Token"
+      StackName: 
+        default: "Stack name"
+      TemplateFile: 
+        default: "Template file"
+      ConfigurationFile: 
+        default: "Configuration file"
+      ParameterOverrides:
+        default: "Parameter overrides"
+Conditions:
+  NoCapabilities: !Equals [!Ref Capabilities,'']
+  NoConfigurationFile: !Equals [!Ref ConfigurationFile,'']
+  NoParameterOverrides: !Equals [!Ref ParameterOverrides,'']
+  Build: !Equals [!Ref Build,true]
+  Validation: !Equals [!Ref Validation,true]
+Resources:
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      AccessControl: PublicRead
+      LifecycleConfiguration:
+        Rules:
+        - Id: RemoveSourceArtifacts
+          Prefix: source
+          Status: Enabled
+          ExpirationInDays: 30
+        - Id: RemoveBuildArtifacts
+          Prefix: build
+          Status: Enabled
+          ExpirationInDays: 30
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Principal:
+            Service:
+            - cloudformation.amazonaws.com
+          Action: sts:AssumeRole
+          Effect: Allow
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+      Path: /
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Principal:
+            Service:
+            - codepipeline.amazonaws.com
+          Action: sts:AssumeRole
+          Effect: Allow
+        Version: '2012-10-17'
+      Policies:
+      - PolicyName: AllowCloudFormation
+        PolicyDocument:  
+          Statement:
+          - Effect: Allow
+            Action:
+            - cloudformation:*
+            Resource: "*"
+          - Effect: Allow
+            Action: iam:PassRole
+            Resource: !GetAtt CloudFormationRole.Arn
+          - !If
+            - Build
+            - Effect: Allow
+              Action:
+              - codebuild:StartBuild
+              - codebuild:StopBuild
+              - codebuild:BatchGetBuilds
+              Resource: !GetAtt Codebuild.Arn
+            - !Ref AWS::NoValue
+      - PolicyName: AllowBucket
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: s3:*
+            Resource: !Sub ${ArtifactBucket.Arn}/*
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Condition: Build
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Principal:
+            Service:
+            - codebuild.amazonaws.com
+          Action: sts:AssumeRole
+          Effect: Allow
+        Version: '2012-10-17'
+      Policies:
+      - PolicyName: AllowBuild
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
+      - PolicyName: AllowBucket
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: s3:*
+            Resource: !Sub ${ArtifactBucket.Arn}/*
+      Path: /
+  Codebuild:
+    Type: AWS::CodeBuild::Project
+    Condition: Build
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      ServiceRole: !Ref CodeBuildRole
+      Source:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/python:3.7.1
+        EnvironmentVariables:
+        - Name: BucketName
+          Type: PLAINTEXT
+          Value: !Ref ArtifactBucket
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Ref StackName 
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      RestartExecutionOnUpdate: false
+      Stages:
+      - Name: Source
+        Actions:
+        - Name: Source
+          ActionTypeId:
+            Category: Source
+            Owner: ThirdParty
+            Version: '1'
+            Provider: GitHub
+          OutputArtifacts:
+          - Name: source
+          Configuration:
+            Owner: !Ref GitOwner
+            Repo: !Ref GitRepo
+            Branch: !Ref GitBranch
+            OAuthToken: !Ref GitToken
+          RunOrder: 1
+      - !If
+        - Build
+        - Name: Build
+          Actions:
+          - Name: Build
+            ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: '1'
+                Provider: CodeBuild
+            OutputArtifacts:
+              - Name: build
+            InputArtifacts:
+              - Name: source
+            Configuration:
+                ProjectName: !Ref Codebuild
+            RunOrder: 2
+        - !Ref AWS::NoValue
+      - Name: Validate
+        Actions:
+        - InputArtifacts:
+          - Name: source
+          - !If
+            - Build
+            - Name: build
+            - !Ref AWS::NoValue
+          Name: ComputeChanges
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          Configuration:
+            ActionMode: CHANGE_SET_REPLACE
+            RoleArn: !GetAtt CloudFormationRole.Arn
+            StackName: !Ref StackName
+            ChangeSetName: CodePipeline
+            TemplatePath: !Ref TemplateFile
+            Capabilities: !If [NoCapabilities, !Ref 'AWS::NoValue', !Ref Capabilities]
+            ParameterOverrides: !If [NoParameterOverrides, !Ref 'AWS::NoValue', !Ref ParameterOverrides]
+            TemplateConfiguration: !If [NoConfigurationFile, !Ref 'AWS::NoValue', !Ref ConfigurationFile]
+          RunOrder: 3
+        - !If
+          - Validation
+          - Name: ApproveChangeSet
+            ActionTypeId:
+              Category: Approval
+              Owner: AWS
+              Provider: Manual
+              Version: '1'
+            Configuration:
+              CustomData: !Sub 'A new change set was created for the ${StackName} stack. Do you want to implement the changes?'
+            RunOrder: 4
+          - !Ref AWS::NoValue
+      - Name: Deploy
+        Actions:          
+        - Name: Deploy
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Version: '1'
+            Provider: CloudFormation
+          Configuration:
+            ActionMode: CHANGE_SET_EXECUTE
+            RoleArn: !GetAtt CloudFormationRole.Arn
+            StackName: !Ref StackName
+            ChangeSetName: CodePipeline
+            Capabilities: !If [NoCapabilities, !Ref 'AWS::NoValue', !Ref Capabilities]
+          RunOrder: 5
