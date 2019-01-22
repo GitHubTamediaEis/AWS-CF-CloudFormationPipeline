@@ -62,20 +62,20 @@ Metadata:
       - Build
       - Capabilities
       - ParameterOverrides
-    ParameterLabels: 
-      GitOwner: 
+    ParameterLabels:
+      GitOwner:
         default: Owner
-      GitRepo: 
+      GitRepo:
         default: Repository
-      GitBranch: 
+      GitBranch:
         default: Branch
-      GitToken: 
+      GitToken:
         default: Token
-      StackName: 
+      StackName:
         default: Stack name
-      TemplateFile: 
+      TemplateFile:
         default: Template file
-      ConfigurationFile: 
+      ConfigurationFile:
         default: Configuration file
       ParameterOverrides:
         default: Parameter overrides
