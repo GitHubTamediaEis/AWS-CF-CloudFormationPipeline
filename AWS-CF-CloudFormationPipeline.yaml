@@ -89,18 +89,6 @@ Resources:
   ArtifactBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
-    Properties:
-      AccessControl: PublicRead
-      LifecycleConfiguration:
-        Rules:
-        - Id: RemoveSourceArtifacts
-          Prefix: source
-          Status: Enabled
-          ExpirationInDays: 30
-        - Id: RemoveBuildArtifacts
-          Prefix: build
-          Status: Enabled
-          ExpirationInDays: 30
   CloudFormationRole:
     Type: AWS::IAM::Role
     Properties:
@@ -198,6 +186,12 @@ Resources:
         - Name: BucketName
           Type: PLAINTEXT
           Value: !Ref ArtifactBucket
+  CodeBuildLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: Build
+    Properties: 
+      LogGroupName: !Sub /aws/codebuild/${Codebuild}
+      RetentionInDays: 30
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
