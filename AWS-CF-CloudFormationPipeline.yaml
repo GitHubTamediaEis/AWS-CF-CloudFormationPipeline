@@ -47,14 +47,14 @@ Metadata:
   AWS::CloudFormation::Interface: 
     ParameterGroups: 
     - Label: 
-        default: "GitHub"
+        default: GitHub
       Parameters: 
       - GitOwner
       - GitRepo
       - GitBranch
       - GitToken
     - Label: 
-        default: "CloudFormation"
+        default: CloudFormation
       Parameters: 
       - StackName
       - TemplateFile
@@ -64,21 +64,21 @@ Metadata:
       - ParameterOverrides
     ParameterLabels: 
       GitOwner: 
-        default: "Owner"
+        default: Owner
       GitRepo: 
-        default: "Repository"
+        default: Repository
       GitBranch: 
-        default: "Branch"
+        default: Branch
       GitToken: 
-        default: "Token"
+        default: Token
       StackName: 
-        default: "Stack name"
+        default: Stack name
       TemplateFile: 
-        default: "Template file"
+        default: Template file
       ConfigurationFile: 
-        default: "Configuration file"
+        default: Configuration file
       ParameterOverrides:
-        default: "Parameter overrides"
+        default: Parameter overrides
 Conditions:
   NoCapabilities: !Equals [!Ref Capabilities,'']
   NoConfigurationFile: !Equals [!Ref ConfigurationFile,'']
