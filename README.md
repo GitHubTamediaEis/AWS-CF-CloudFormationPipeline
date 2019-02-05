@@ -1,6 +1,7 @@
 # AWS-CF-CloudFormationPipeline
 Provide generic pipeline to automated Github to CloudFormation deployement
 
+- Main benefit over manualy doing the pipeline is that it can rely on the token of a service account instead of a personal one
 - It does not rely on webhook on purpose, as those require admin privilege on the repository to setup
 - If build is set to true, it will create a codebuild project. The codebuild project will rely on the builspec.yaml to know what to do
     - The name of the s3 bucket storing artifacts will be stored in the environnement variable BucketName. This can be used if you want to manually manipulate files
