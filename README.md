@@ -5,12 +5,13 @@ Provide generic pipeline to automated Github to CloudFormation deployement
 - If build is set to true, it will create a codebuild project. The codebuild project will rely on the builspec.yaml to know what to do
     - The name of the s3 bucket storing artifacts will be stored in the environnement variable BucketName. This can be used if you want to manually manipulate files
     - Common use case is packaging nested stack
-- Template file and configuration file needs to be prefixed by the artifact name followed by ::, there are 2 valid artifact name:
-    - source, containing files imported from github
-    - build, containing output of the build phase
+- Template file and configuration file needs to be prefixed by the artifact name followed by ::, there are 2 valid artifact names:
+    - source: containing files imported from github
+    - build: containing output of the build phase
     - Example: source::Mytemplate.yaml
 
 Buildspec.yaml example:
+````yaml
     version: 0.2
     phases:
     build:
