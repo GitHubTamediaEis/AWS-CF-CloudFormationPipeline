@@ -1,3 +1,4 @@
+Description: Create a standardized pipeline for CI/CD between GitHub and CloudFormation
 Parameters:
   GitOwner:
     Type: String
