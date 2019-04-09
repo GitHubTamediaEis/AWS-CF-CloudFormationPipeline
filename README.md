@@ -10,7 +10,8 @@ Provide generic pipeline to automated Github to CloudFormation deployement
     - source: containing files imported from github
     - build: containing output of the build phase
     - Example: source::Mytemplate.yaml
-
+- Artifact bucket can be accessed by the CodeBuild during the building step, its name is made available in the variable $BucketName
+- Container registry, when selected, can be accessed by the CodeBuild during the building step, its name is made available in the variable $ContainerRegistryName
 Buildspec.yaml example:
 ````yaml
     version: 0.2
