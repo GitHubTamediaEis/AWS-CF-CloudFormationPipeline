@@ -15,6 +15,13 @@ Parameters:
     Type: String
     Default: build::packaged.yaml
     Description: 'Name of the CloudFormation template file, prefixed by the artifact name (either source:: or build::)'
+  ContainerRegistry:
+    Type: String
+    Default: true
+    Description: Is a container registry (ECR) needed?
+    AllowedValues:
+    - true
+    - false 
   Build:
     Type: String
     Default: true
@@ -84,6 +91,7 @@ Conditions:
   NoCapabilities: !Equals [!Ref Capabilities,'']
   NoConfigurationFile: !Equals [!Ref ConfigurationFile,'']
   NoParameterOverrides: !Equals [!Ref ParameterOverrides,'']
+  ContainerRegistry: !Equals [!Ref ContainerRegistry,true]
   Build: !Equals [!Ref Build,true]
   Validation: !Equals [!Ref Validation,true]
 Resources:
@@ -104,6 +112,25 @@ Resources:
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/AdministratorAccess
       Path: /
+  ECR:
+    Condition: ContainerRegistry
+    Type: AWS::ECR::Repository
+    Properties: 
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+            {
+              "rulePriority": 1,
+              "description": "Only keep 10 images",
+              "selection": {
+                "tagStatus": "any",
+                "countType": "imageCountMoreThan",
+                "countNumber": 10
+              },
+              "action": { "type": "expire" }
+            }]
+          }
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
@@ -134,6 +161,19 @@ Resources:
               - codebuild:StopBuild
               - codebuild:BatchGetBuilds
               Resource: !GetAtt Codebuild.Arn
+            - !Ref AWS::NoValue
+          - !If
+            - ContainerRegistry
+            - Effect: Allow
+              Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+              - ecr:PutImage
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+              Resource: !GetAtt ECR.Arn
             - !Ref AWS::NoValue
       - PolicyName: AllowBucket
         PolicyDocument:
@@ -187,6 +227,12 @@ Resources:
         - Name: BucketName
           Type: PLAINTEXT
           Value: !Ref ArtifactBucket
+        - !If
+          - ContainerRegistry
+          - Name: ContainerRegistryName
+            Type: PLAINTEXT
+            Value: !Ref ECR
+          - !Ref AWS::NoValue            
   CodeBuildLogGroup:
     Type: AWS::Logs::LogGroup
     Condition: Build
