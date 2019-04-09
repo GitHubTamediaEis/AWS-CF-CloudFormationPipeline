@@ -17,7 +17,7 @@ Parameters:
     Description: 'Name of the CloudFormation template file, prefixed by the artifact name (either source:: or build::)'
   ContainerRegistry:
     Type: String
-    Default: true
+    Default: false
     Description: Is a container registry (ECR) needed?
     AllowedValues:
     - true
@@ -68,6 +68,7 @@ Metadata:
       - TemplateFile
       - ConfigurationFile
       - Build
+      - ContainerRegistry
       - Capabilities
       - ParameterOverrides
     ParameterLabels:
@@ -83,6 +84,8 @@ Metadata:
         default: Stack name
       TemplateFile:
         default: Template file
+      ContainerRegistry:
+        default: Container registry
       ConfigurationFile:
         default: Configuration file
       ParameterOverrides:
