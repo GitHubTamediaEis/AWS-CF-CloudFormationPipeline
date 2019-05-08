@@ -21,7 +21,12 @@ Parameters:
     Description: Does the cloudformation need to be built?
     AllowedValues:
     - true
-    - false  
+    - false
+  CodeBuildImage:
+    Condition: Build
+    Type: String
+    Description: Docker image used by CodeBuild, see https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html
+    Default: aws/codebuild/python:3.7.1
   ConfigurationFile:
     Default: ''
     Type: String
@@ -182,7 +187,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/python:3.7.1
+        Image: !Ref CodeBuildImage
         EnvironmentVariables:
         - Name: BucketName
           Type: PLAINTEXT
