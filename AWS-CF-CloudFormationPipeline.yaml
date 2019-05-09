@@ -225,7 +225,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Type: LINUX_CONTAINER
-        Image: 	aws/codebuild/standard:latest
+        Image: aws/codebuild/standard:latest
         EnvironmentVariables:
         - Name: BucketName
           Type: PLAINTEXT
