@@ -29,9 +29,6 @@ Parameters:
     AllowedValues:
     - true
     - false
-  CodeBuildImage:
-    Type: String
-    Description: Only needed if build is set to true. Docker image used by CodeBuild, see https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html
   ConfigurationFile:
     Default: ''
     Type: String
@@ -71,7 +68,6 @@ Metadata:
       - TemplateFile
       - ConfigurationFile
       - Build
-      - CodeBuildImage
       - ContainerRegistry
       - Capabilities
       - ParameterOverrides
@@ -88,8 +84,6 @@ Metadata:
         default: Stack name
       TemplateFile:
         default: Template file
-      CodeBuildImage:
-        default: CodeBuild image
       ContainerRegistry:
         default: Container registry
       ConfigurationFile:
@@ -231,7 +225,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Type: LINUX_CONTAINER
-        Image: !Ref CodeBuildImage
+        Image: 	aws/codebuild/standard:2.0
         EnvironmentVariables:
         - Name: BucketName
           Type: PLAINTEXT
