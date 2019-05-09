@@ -28,7 +28,7 @@ Parameters:
     Description: Does the cloudformation need to be built?
     AllowedValues:
     - true
-    - false
+    - false  
   ConfigurationFile:
     Default: ''
     Type: String
@@ -225,7 +225,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Type: LINUX_CONTAINER
-        Image: 	aws/codebuild/standard:2.0
+        Image: 	aws/codebuild/standard:latest
         EnvironmentVariables:
         - Name: BucketName
           Type: PLAINTEXT
