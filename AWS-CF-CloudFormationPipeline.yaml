@@ -167,21 +167,23 @@ Resources:
             - !Ref AWS::NoValue
           - !If
             - ContainerRegistry
-            - 
-              - Effect: Allow
-                Action:
-                - ecr:GetDownloadUrlForLayer
-                - ecr:BatchGetImage
-                - ecr:BatchCheckLayerAvailability
-                - ecr:PutImage
-                - ecr:InitiateLayerUpload
-                - ecr:UploadLayerPart
-                - ecr:CompleteLayerUpload
-                Resource: !GetAtt ECR.Arn
-              - Effect: Allow
-                Action:
-                - ecr:GetAuthorizationToken
-                Resource: '*'
+            - Effect: Allow
+              Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+              - ecr:PutImage
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+              Resource: !GetAtt ECR.Arn
+            - !Ref AWS::NoValue
+          - !If
+            - ContainerRegistry
+            - Effect: Allow
+              Action:
+              - ecr:GetAuthorizationToken
+              Resource: '*'
             - !Ref AWS::NoValue
       - PolicyName: AllowBucket
         PolicyDocument:
