@@ -167,16 +167,21 @@ Resources:
             - !Ref AWS::NoValue
           - !If
             - ContainerRegistry
-            - Effect: Allow
-              Action:
-              - ecr:GetDownloadUrlForLayer
-              - ecr:BatchGetImage
-              - ecr:BatchCheckLayerAvailability
-              - ecr:PutImage
-              - ecr:InitiateLayerUpload
-              - ecr:UploadLayerPart
-              - ecr:CompleteLayerUpload
-              Resource: !GetAtt ECR.Arn
+            - 
+              - Effect: Allow
+                Action:
+                - ecr:GetDownloadUrlForLayer
+                - ecr:BatchGetImage
+                - ecr:BatchCheckLayerAvailability
+                - ecr:PutImage
+                - ecr:InitiateLayerUpload
+                - ecr:UploadLayerPart
+                - ecr:CompleteLayerUpload
+                Resource: !GetAtt ECR.Arn
+              - Effect: Allow
+                Action:
+                - ecr:GetAuthorizationToken
+                Resource: '*'
             - !Ref AWS::NoValue
       - PolicyName: AllowBucket
         PolicyDocument:
@@ -219,13 +224,18 @@ Resources:
     Properties:
       Artifacts:
         Type: CODEPIPELINE
-      ServiceRole: !Ref CodeBuildRole
+      ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Type: LINUX_CONTAINER
         Image: aws/codebuild/standard:2.0
+        PrivilegedMode: 
+          !If
+            - ContainerRegistry
+            - true
+            - false
         EnvironmentVariables:
         - Name: BucketName
           Type: PLAINTEXT
