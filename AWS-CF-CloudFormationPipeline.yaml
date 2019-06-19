@@ -165,26 +165,6 @@ Resources:
               - codebuild:BatchGetBuilds
               Resource: !GetAtt Codebuild.Arn
             - !Ref AWS::NoValue
-          - !If
-            - ContainerRegistry
-            - Effect: Allow
-              Action:
-              - ecr:GetDownloadUrlForLayer
-              - ecr:BatchGetImage
-              - ecr:BatchCheckLayerAvailability
-              - ecr:PutImage
-              - ecr:InitiateLayerUpload
-              - ecr:UploadLayerPart
-              - ecr:CompleteLayerUpload
-              Resource: !GetAtt ECR.Arn
-            - !Ref AWS::NoValue
-          - !If
-            - ContainerRegistry
-            - Effect: Allow
-              Action:
-              - ecr:GetAuthorizationToken
-              Resource: '*'
-            - !Ref AWS::NoValue
       - PolicyName: AllowBucket
         PolicyDocument:
           Statement:
@@ -219,6 +199,26 @@ Resources:
           - Effect: Allow
             Action: s3:*
             Resource: !Sub ${ArtifactBucket.Arn}/*
+      - !If
+        - ContainerRegistry
+        - PolicyName: AllowECR
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:BatchCheckLayerAvailability
+              - ecr:PutImage
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+              Resource: !GetAtt ECR.Arn
+            - Effect: Allow
+              Action:
+              - ecr:GetAuthorizationToken
+              Resource: '*'
+        - !Ref AWS::NoValue
       Path: /
   Codebuild:
     Type: AWS::CodeBuild::Project
