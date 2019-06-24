@@ -242,6 +242,9 @@ Resources:
         - Name: BucketName
           Type: PLAINTEXT
           Value: !Ref ArtifactBucket
+        - Name: AWS_ACCOUNTID
+          Type: PLAINTEXT
+          Value: !Ref AWS::AccountId
         - !If
           - ContainerRegistry
           - Name: ContainerRegistryName
