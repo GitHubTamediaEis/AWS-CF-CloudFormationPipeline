@@ -15,7 +15,7 @@ Provide generic pipeline to automated Github to CloudFormation deployement
 - Container registry, when selected, can be accessed by the CodeBuild during the building step, its name is made available in the variable $ContainerRegistryName
 - The AWS account id is exposed in the environment variable AWS_ACCOUNTID. This one is not present in the default variables (https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html)
 
-*** Buildspec.yaml example:
+***Buildspec.yaml example:
 ````yaml
     version: 0.2
     phases:
