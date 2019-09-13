@@ -19,13 +19,13 @@ Provide generic pipeline to automated Github to CloudFormation deployement
 ````yaml
     version: 0.2
     phases:
-    build:
+      build:
         commands:
         - cd code
         - pip install pytz -t .
         - zip -r -9 ../ec2rds-scheduler.zip *
         - cd ..
-    post_build:
+      post_build:
         commands:
         - aws cloudformation package --template-file EC2RDS-Scheduler.yaml --s3-bucket $BucketName --output-template-file packaged.yaml
     artifacts:
