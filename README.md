@@ -29,5 +29,5 @@ Provide generic pipeline to automated Github to CloudFormation deployement
         commands:
         - aws cloudformation package --template-file EC2RDS-Scheduler.yaml --s3-bucket $BucketName --output-template-file packaged.yaml
     artifacts:
-    files:
+      files:
         - packaged.yaml
