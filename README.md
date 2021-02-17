@@ -1,7 +1,7 @@
 # AWS-CF-CloudFormationPipeline
 Provide generic pipeline to automated Github to CloudFormation deployement
 
-- Main benefit over manualy doing the pipeline is that it can rely on the token of a service account instead of a personal one
+- Main benefit over manualy doing the pipeline is that it can rely on the token of a service account instead of a personal one. Best practice would be to store the api key to secretmanager and reference it using dynamic resolution: `{{resolve:secretsmanager:github:SecretString:apiKey}}`
 - You can chose your CodeBuild Image (https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html#runtime-versions-buildspec-file)
 - It does not rely on webhook on purpose, as those require admin privilege on the repository to setup
 - If build is set to true, it will create a codebuild project. The codebuild project will rely on the builspec.yaml to know what to do
