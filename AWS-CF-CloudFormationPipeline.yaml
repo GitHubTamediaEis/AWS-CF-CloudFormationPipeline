@@ -235,7 +235,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:2.0
+        Image: aws/codebuild/standard:5.0
         PrivilegedMode: 
           !If
             - ContainerRegistry
